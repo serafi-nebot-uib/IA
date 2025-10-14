@@ -11,8 +11,6 @@ from tictac.estat import Estat
 class Agent(agent.Agent):
     def __init__(self, torn: str, poda: bool = False):
         super(Agent, self).__init__(long_memoria=1)
-        self.__visitats = None
-        self.__cami_exit = None
         self.__poda = poda
         self.torn = torn
         self.nom = f"Agent {torn}"
@@ -22,11 +20,9 @@ class Agent(agent.Agent):
         mida = percepcio["mida"]
         torn = percepcio["torn"]
         estat = Estat(taulell, mida, torn)
-        print(estat)
 
-        m = max(estat.fills, key=lambda f: f.value(torn))
+        if estat.meta:
+            return "E", ""
 
-        print(estat.value(self.torn))
-
-        import sys
-        sys.exit(0)
+        _, c = max(estat.fills, key=lambda f: f[0].value(torn))
+        return "P", c

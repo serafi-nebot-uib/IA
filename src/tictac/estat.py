@@ -23,8 +23,10 @@ class Estat:
             self.__init = True
 
     @cached_property
-    def fills(self) -> list[Self]:
-        return list(filter(None, starmap(self.posar, product(*map(range, self.mida))))) if not self.guanyador is not None else []
+    def fills(self) -> list[tuple[Self, tuple[int, int]]]:
+        if self.guanyador is None:
+            return [(p, c) for c in product(*map(range, self.mida)) if (p := self.posar(*c))]
+        return []
 
     @cached_property
     def guanyador(self) -> int | None:
@@ -35,7 +37,7 @@ class Estat:
             for dx, dy in desp:
                 idxs = [(py+dy*i, px+dx*i) for i in range(3)] # TODO: should difficulty (3) be parametrized?
                 if all(starmap(self.__bounds, idxs)):
-                    symbols = {self.taulell[y][x] for x, y in idxs}
+                    symbols = {self.taulell[x][y] for x, y in idxs}
                     if len(symbols) == 1 and " " not in symbols:
                         return next(iter(symbols))
         return None
@@ -50,13 +52,13 @@ class Estat:
                 return 0
             return 1 if self.guanyador == torn else -1
         torn_seg = "0" if torn == "X" else "X"
-        fills = [f.value(torn_seg) for f in self.fills]
-        return max(fills) if self.torn == torn else min(fills)
+        fvals = [f.value(torn_seg) for f, _ in self.fills]
+        return max(fvals) if self.torn == torn else min(fvals)
 
     def posar(self, x: int, y: int) -> Self | None:
-        if self.__bounds(x, y) and self.taulell[y][x] == " ":
+        if self.__bounds(x, y) and self.taulell[x][y] == " ":
             taulell = deepcopy(self.taulell)
-            taulell[y][x] = self.torn
+            taulell[x][y] = self.torn
             return self.__class__(taulell, self.mida, "0" if self.torn == "X" else "X")
         return None
 
