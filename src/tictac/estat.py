@@ -21,6 +21,7 @@ class Estat:
         if not hasattr(self, "__init"):
             self.taulell, self.mida, self.torn = taulell, mida, torn
             self.__init = True
+            self.__locked = True
 
     @cached_property
     def fills(self) -> list[tuple[Self, tuple[int, int]]]:
@@ -63,6 +64,9 @@ class Estat:
         return None
 
     def __bounds(self, x: int, y: int) -> bool: return all(0 <= a < b for a, b in zip((x, y), self.mida))
+    def __setattr__(self, key, value):
+        if getattr(self, "__locked", False): raise AttributeError("object is immutable")
+        super().__setattr__(key, value)
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__): return NotImplemented
         return all(getattr(self, a) == getattr(other, b) for a, b in ("taulell", "mida", "torn", "torn_max"))
