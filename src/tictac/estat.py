@@ -46,14 +46,28 @@ class Estat:
     @cached_property
     def meta(self) -> bool: return self.guanyador is not None or len(self.fills) == 0
 
-    @cache
-    def value(self, torn: str) -> int:
+    def value(self, torn: str, alpha: int | None = None, beta: int | None = None) -> int:
+        prune = None not in (alpha, beta)
+
         if self.meta:
             if self.guanyador is None:
                 return 0
             return 1 if self.guanyador == torn else -1
+
         torn_seg = "0" if torn == "X" else "X"
-        fvals = [f.value(torn_seg) for f, _ in self.fills]
+        fvals = []
+        for fill, _ in self.fills:
+            p = fill.value(torn_seg, alpha, beta)
+            fvals.append(p)
+            if prune:
+                if self.torn == torn:
+                    alpha = max(alpha, p)
+                else:
+                    beta = min(beta, p)
+                if alpha >= beta:
+                    print(f"prune: {alpha} >= {beta}")
+                    break
+
         return max(fvals) if self.torn == torn else min(fvals)
 
     def posar(self, x: int, y: int) -> Self | None:
@@ -69,7 +83,7 @@ class Estat:
         super().__setattr__(key, value)
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__): return NotImplemented
-        return all(getattr(self, a) == getattr(other, b) for a, b in ("taulell", "mida", "torn", "torn_max"))
+        return all(getattr(self, a) == getattr(other, b) for a, b in ("taulell", "mida", "torn"))
     @staticmethod
     def __hash(taulell, mida, torn) -> int: return hash(tuple(x for f in taulell for x in f) + mida + (torn,))
     def __hash__(self) -> int: return Estat.__hash(self.taulell, self.mida, self.torn)

@@ -4,7 +4,7 @@ from tictac import joc, agent
 
 def main():
     quatre = joc.Taulell(
-        [agent.Agent("0", poda=False), agent.Agent("X", poda=False)],
+        [agent.Agent(poda=True), agent.Agent(poda=True)],
         mida_taulell=(3, 3),
         dificultat=3,
     )
