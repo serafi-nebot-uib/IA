@@ -41,13 +41,13 @@ class Estat:
         if accio == "MOURE":
             if pos.within(self.dim) and pos not in self.parets:
                 return self.__class__(pos, self.desti, self.parets, self.dim, cami)
+        elif accio == "BOTAR":
+            pos += self.DESP[desp]
+            if pos.within(self.dim) and pos not in self.parets:
+                return self.__class__(pos, self.desti, self.parets, self.dim, cami)
         elif accio == "POSAR_PARET":
             if pos.within(self.dim) and pos not in self.parets:
                 return self.__class__(self.pos, self.desti, self.parets.union({pos}), self.dim, cami)
-        elif accio == "BOTAR":
-            pos, posb = pos + self.DESP[desp], pos
-            if all(p.within(self.dim) and p not in self.parets for p in (pos, posb)):
-                return self.__class__(pos, self.desti, self.parets, self.dim, cami)
         else:
             raise KeyError(f"accio invalida: {accio}")
         return None

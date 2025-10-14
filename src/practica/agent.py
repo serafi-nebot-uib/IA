@@ -29,7 +29,7 @@ class Viatger(joc.Viatger):
             exit = True
 
         return exit
-    
+
     def dfs(self, estat_inicial: Estat) -> bool:
         oberts = []
         tancats = set()

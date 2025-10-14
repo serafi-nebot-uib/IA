@@ -1,10 +1,10 @@
-from tictac import joc
-from tictac.solucio import agent as agent
+from tictac import joc, agent
+# from tictac.solucio import agent as agent
 
 
 def main():
     quatre = joc.Taulell(
-        [agent.Agent(poda=False), agent.Agent(poda=False)],
+        [agent.Agent("0", poda=False), agent.Agent("X", poda=False)],
         mida_taulell=(3, 3),
         dificultat=3,
     )
