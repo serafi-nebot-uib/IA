@@ -38,13 +38,13 @@ class Viatger(joc.Viatger):
 
         oberts.append(estat_inicial)
         while oberts:
-            estat_actual = oberts.pop(-1)
+            estat_actual = oberts.pop(0)
 
             if estat_actual is None: break
             if estat_actual in tancats: continue
             if estat_actual.h == 0: break
 
-            for f in estat_actual.fills(): oberts.append(f)
+            oberts = list(estat_actual.fills()) + oberts
             tancats.add(estat_actual)
 
         if estat_actual and estat_actual.h == 0:
@@ -60,8 +60,8 @@ class Viatger(joc.Viatger):
             pos = Pos(*percepcio["AGENTS"]["Agent 1"])
             parets = {Pos(*p) for p in percepcio["PARETS"]}
             desti = Pos(*percepcio["DESTI"])
-            self.astar(Estat(pos, desti, parets, dim))
-            # self.dfs(Estat(pos, desti, parets, dim))
+            # self.astar(Estat(pos, desti, parets, dim))
+            self.dfs(Estat(pos, desti, parets, dim))
             print(f"n steps: {len(self.__accions if self.__accions else [])}")
         if self.__accions:
             accio = self.__accions.pop(0)
