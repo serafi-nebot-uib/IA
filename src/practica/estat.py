@@ -1,23 +1,34 @@
 from typing import NamedTuple, Self, Iterable
 import operator as ops
-
 class Pos(NamedTuple):
-    x: int; y: int
+    x: int
+    y: int
+
     def within(self, low: Iterable[int], up: Iterable[int] | None = None) -> bool:
-        if up is None: up, low = low, (0, 0)
+        if up is None: up, low = low, (0,) * len(self)
         return all(l <= s < u for l, s, u in zip(low, self, up))
+
     def __op(self, other, op):
         if isinstance(other, int): return Pos(*(op(c, other) for c in self))
         elif isinstance(other, Iterable): return Pos(*(op(a, b) for a, b in zip(self, other)))
         else: return NotImplemented
+
     def __add__(self, other): return self.__op(other, ops.add)
     def __sub__(self, other): return self.__op(other, ops.sub)
     def __mul__(self, other): return self.__op(other, ops.mul)
     def __iadd__(self, other): return self.__op(other, ops.add)
     def __isub__(self, other): return self.__op(other, ops.sub)
     def __imul__(self, other): return self.__op(other, ops.mul)
-    def __neg__(self): return Pos(-self.x, -self.y)
-    def __str__(self): return str((self.x, self.y))
+    def __neg__(self): return Pos(*(-a for a in self))
+
+    def __eq__(self, other):
+        if isinstance(other, Pos):
+            return all(a == b for a, b in zip(self, other))
+        return NotImplemented
+
+    def __hash__(self): return hash(tuple(self))
+
+    def __str__(self): return str(tuple(self))
     def __repr__(self): return str(self)
 
 class Estat:
@@ -50,9 +61,9 @@ class Estat:
                 return self.__class__(self.pos, self.desti, self.parets.union({pos}), self.dim, cami)
         else:
             raise KeyError(f"accio invalida: {accio}")
-        return None
 
-    def fills(self): yield from filter(None, (self.accio(a, d) for a in self.ACCIO.keys() for d in self.DESP.keys()))
+    def fills(self):
+        yield from filter(None, (self.accio(a, d) for a in self.ACCIO.keys() for d in self.DESP.keys()))
 
     def __eq__(self, other):
         if not isinstance(other, Estat): return NotImplemented
@@ -66,4 +77,3 @@ class Estat:
         # (python no assegura dos set() amb els mateixos elements seguesquin el mateix ordre)
         return hash(self.pos + self.desti + self.dim + tuple(b for a in sorted(self.parets) for b in a))
     def __str__(self): return f"{'x'.join(map(str, self.dim))} | {len(self.parets):3d} : {self.pos} -> {self.desti}"
-    def __repr__(self): return str(self)

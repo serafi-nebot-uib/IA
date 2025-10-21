@@ -38,13 +38,13 @@ class Viatger(joc.Viatger):
 
         oberts.append(estat_inicial)
         while oberts:
-            estat_actual = oberts.pop(0)
+            estat_actual = oberts.pop(-1)
 
             if estat_actual is None: break
             if estat_actual in tancats: continue
             if estat_actual.h == 0: break
 
-            oberts = list(estat_actual.fills()) + oberts
+            for f in estat_actual.fills(): oberts.append(f)
             tancats.add(estat_actual)
 
         if estat_actual and estat_actual.h == 0:
@@ -52,7 +52,6 @@ class Viatger(joc.Viatger):
             exit = True
 
         return exit
-
 
     def actua(self, percepcio) -> tuple[str, str]:
         if self.__accions is None:
