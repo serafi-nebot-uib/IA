@@ -1,4 +1,4 @@
-from cliffwalking.agent import AgentSARSA
+from cliffwalking.agent import AgentSARSA, AgentQL
 import gymnasium as gym
 import numpy as np
 
@@ -37,12 +37,10 @@ def main():
         "CliffWalking-v1",
         render_mode=None,
     )
-    n_estats = env.observation_space.n
-    n_actions = env.action_space.n
 
-    agent = AgentSARSA(alpha=0.5, gamma=1.0)
-
-    # TODO
+    agent = AgentSARSA(alpha=0.5, gamma=1.0, eps=0.01)
+    # agent = AgentQL(alpha=0.5, gamma=1.0, eps=0.01)
+    for _ in range(20000): agent.train(env)
 
     # Per a visualitzar l'agent ja entrenat posam el render_mode a human
     env = gym.make(
@@ -50,8 +48,10 @@ def main():
         render_mode="human",
     )
 
-    # TODO
-
+    pos, _ = env.reset()
+    term, trunc = False, False
+    while not (term or trunc):
+        pos, _ , term, trunc, _ = env.step(agent.actua(pos))
 
 if __name__ == '__main__':
     main()
