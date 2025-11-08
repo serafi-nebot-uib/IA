@@ -5,28 +5,59 @@ Tasca a fer:
     - Completa el bucle principal a `main` per actualitzar els valors Q utilitzant l'algorisme de
         Monte Carlo amb política epsilon-greedy.
 """
-from gridworld import joc
+from gridworld.joc import GridWorld
 import numpy as np
-import random
 
+N = 5
+A = GridWorld.actions
+P = { "N": "↑", "S": "↓", "E": "→", "O": "←" }
 
-def generate_episode(env, state, policy, epsilon):
-    # TODO
-    pass
+def generate_episode(env: GridWorld, state: tuple[int, int], policy, epsilon: float):
+    env.reset(state)
+    episode = []
+    for _ in range(50):
+        action = np.random.choice(len(A)) if np.random.rand() < epsilon else policy[state]
+        state_next, reward = env.step(A[action])
+        episode.append((state, action, reward))
+        state = state_next
+    return episode
 
+def print_policy(p): print("\n".join(" ".join(P[A[c]] for c in r) for r in p))
+def print_value(v): print("\n".join(" ".join(f"{c:>6.3f}" for c in r) for r in v))
 
 def main():
-    y = 0.9 # Gamma
-    episodis = 2000
+    env = GridWorld((0, 0), (N, N))
 
-    Q = np.zeros((5, 5, 4), dtype=float)
-    env = joc.GridWorld((0, 0), (5, 5))
-    returns = dict()
+    gamma = 0.9
+    eps = 0.1
+    episodis = 20000
 
-    for ep in range(episodis):
-        initial_state = random.randint(0, 4), random.randint(0, 4)
-        # TODO
+    Q = np.zeros((N, N, len(A)), dtype="float")
+    C = np.zeros((N, N, len(A)), dtype="int")
+    policy = np.zeros((N, N), dtype="int")
 
+    for _ in range(episodis):
+        state = np.random.randint(0, N), np.random.randint(0, N)
+        episode = generate_episode(env, state, policy, eps)
+
+        print_policy(policy)
+        print()
+
+        g = 0
+        visited = set()
+        for s, a, r in episode[::-1]:
+            sa = (s, a)
+            g += r * gamma
+            if sa not in visited:
+                visited.add(sa)
+                # new_avg = old_avg + (new_value - old_avg) / (n + 1)
+                C[s][a] += 1
+                Q[s][a] += (g - Q[s][a]) / C[s][a]
+                policy[s] = np.random.randint(len(A)) if np.random.rand() < eps else Q[s].argmax()
+
+    print_policy(policy)
+    print()
+    print_value(Q.max(axis=-1))
 
 if __name__ == "__main__":
     main()
