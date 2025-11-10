@@ -31,16 +31,17 @@ def plot_qtable(q: np.ndarray, nrows: int, ncols: int):
   # apply softmax to get arrow lengths proportionate to each action's value
   shifted_q = q - q.max(axis=-1, keepdims=True) # shift for numerical stability
   exp_q = np.exp(shifted_q)
-  anorm = exp_q / exp_q.sum(axis=-1, keepdims=True)
+  anorm = (exp_q / exp_q.sum(axis=-1, keepdims=True)).reshape(nrows, ncols, -1, 1)
   #                 left     down    right   up
   adir = np.array([[-1, 0], [0, 1], [1, 0], [0, -1]])
-  arrow = adir * anorm.reshape(nrows, ncols, -1, 1)
+  arrow = adir * anorm
 
-  for i in range(arrow.shape[0]):
-    for j in range(arrow.shape[1]):
+  for y in range(arrow.shape[0]):
+    for x in range(arrow.shape[1]):
+      if values[y, x] == 0: continue
       for a in range(arrow.shape[2]):
-        dx, dy = arrow[i, j, a]
-        ax.arrow(i, j, dx, dy,
+        dx, dy = arrow[y, x, a]
+        ax.arrow(x, y, dx, dy,
                  head_width=0.08, head_length=0.08,
                  fc="white", ec="black", alpha=0.8,
                  length_includes_head=True, clip_on=True)
@@ -59,7 +60,7 @@ def main():
   # nepisodes = 10000
   epsilon = 0.1
 
-  agent = SARSA(nstates, nactions, alpha=0.1, gamma=0.9998)
+  agent = SARSA(nstates, nactions, alpha=0.10, gamma=0.998)
 
   # train the agent
   for _ in range(nepisodes):
@@ -74,19 +75,19 @@ def main():
 
       # TODO: is this allowed?
       stepi += 1
-      # reward += -0.01 * stepi
+      reward += -0.0001 * stepi
 
       agent.update(state, action, reward, new_state, new_action, term)
       state, action = new_state, new_action
 
   # print(agent.q)
-  # plot_qtable(agent.q, 4, 4)
+  plot_qtable(agent.q, 4, 4)
 
   # test the agent
-  # env = gym.make("FrozenLake-v1", is_slippery=slippery, render_mode="human")
-  # state, _ = env.reset()
-  # term, trunc = False, False
-  # while not (term or trunc): state, _ , term, trunc, _ = env.step(agent.action(state))
+  env = gym.make("FrozenLake-v1", is_slippery=slippery, render_mode="human")
+  state, _ = env.reset()
+  term, trunc = False, False
+  while not (term or trunc): state, _ , term, trunc, _ = env.step(agent.action(state))
 
 if __name__ == "__main__":
   main()
