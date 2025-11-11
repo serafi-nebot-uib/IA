@@ -1,5 +1,6 @@
 import gymnasium as gym
 import numpy as np
+import matplotlib.pyplot as plt
 
 class SARSA:
   def __init__(self, nstates: int, nactions: int, alpha: float, gamma: float):
@@ -21,8 +22,6 @@ class SARSA:
     self.q[state, action] += self.__alpha * (target - self.q[state, action])
 
 def plot_qtable(q: np.ndarray, nrows: int, ncols: int):
-  import matplotlib.pyplot as plt
-
   fig, ax = plt.subplots(figsize=(8, 8))
 
   values = q.max(axis=-1).reshape(nrows, ncols)
@@ -51,19 +50,34 @@ def plot_qtable(q: np.ndarray, nrows: int, ncols: int):
   plt.tight_layout()
   plt.show()
 
+def plot_nsteps(nsteps: np.ndarray, goal: np.ndarray):
+  fig, steps = plt.subplots(figsize=(8, 8))
+
+  # nsteps = nsteps.reshape((-1, 100)).mean(-1)
+  steps.plot(np.arange(nsteps.shape[0]), nsteps, color="blue")
+
+  # goals = steps.twinx()
+  # # goal = goal.reshape((-1, 100)).sum(-1)
+  # goals.plot(np.arange(goal.shape[0]), goal, color="red")
+
+  plt.show()
+
 def main():
   slippery = True
   env = gym.make("FrozenLake-v1", is_slippery=slippery, render_mode=None)
   nactions = env.action_space.n
   nstates = 4 * 4 # TODO: why doesn't env.state_space exist?
-  nepisodes = 20000
-  # nepisodes = 10000
+  # nepisodes = 20000
+  nepisodes = 10000
   epsilon = 0.1
 
   agent = SARSA(nstates, nactions, alpha=0.10, gamma=0.998)
 
+  nsteps = np.zeros((nepisodes,), dtype="int")
+  goal = np.zeros((nepisodes,), dtype="int")
+
   # train the agent
-  for _ in range(nepisodes):
+  for episode in range(nepisodes):
     state, _ = env.reset()
     action = agent.action(state, epsilon)
 
@@ -80,14 +94,18 @@ def main():
       agent.update(state, action, reward, new_state, new_action, term)
       state, action = new_state, new_action
 
+    goal[episode] = int(term)
+    nsteps[episode] = stepi
+
   # print(agent.q)
-  plot_qtable(agent.q, 4, 4)
+  # plot_qtable(agent.q, 4, 4)
+  plot_nsteps(nsteps, goal)
 
   # test the agent
-  env = gym.make("FrozenLake-v1", is_slippery=slippery, render_mode="human")
-  state, _ = env.reset()
-  term, trunc = False, False
-  while not (term or trunc): state, _ , term, trunc, _ = env.step(agent.action(state))
+  # env = gym.make("FrozenLake-v1", is_slippery=slippery, render_mode="human")
+  # state, _ = env.reset()
+  # term, trunc = False, False
+  # while not (term or trunc): state, _ , term, trunc, _ = env.step(agent.action(state))
 
 if __name__ == "__main__":
   main()
