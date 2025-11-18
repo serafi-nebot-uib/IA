@@ -24,10 +24,10 @@ class Perceptron:
     def __init__(self, eta=0.01, n_iter=10):
         self.eta = eta
         self.n_iter = n_iter
-        self.w_ = None  # defined in method fit
+        self.b = None
+        self.w = None
 
     def fit(self, X, y):
-
         """Fit training dat.
 
         Parameters
@@ -37,12 +37,15 @@ class Perceptron:
             n_features is the number of features.
         y : array-like, shape = [n_samples]
             Target values.
-
         """
-        self.w_ = np.zeros(1 + X.shape[1])  # First position corresponds to threshold
+        self.b = np.zeros(1)
+        self.w = np.zeros(X.shape[1])
 
-        # TODO: Put your code (fit algorithm)
-
+        for _ in range(self.n_iter):
+            for j in range(X.shape[0]):
+                f = self.b + np.sum(self.w * X[j])
+                self.b = self.b + self.eta * (y[j] - f)
+                self.w = self.w + self.eta * (y[j] - f) * X[j]
 
     def predict(self, X):
         """Return class label.
@@ -50,7 +53,4 @@ class Perceptron:
             Second apply the step function
             Return a list with classes
         """
-
-        # TODO: Put your code
-
-        return np.random.randint(0, 2, size=X.shape[0])  # remove
+        return (self.b + np.sum(self.w * X, axis=-1) >= 0).astype(np.int8)
